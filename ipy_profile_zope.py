@@ -173,6 +173,8 @@ class ZopeDebug(object):
 
 zope_debug = None
 
+def ipy_set_trace():
+    import IPython; IPython.Debugger.Pdb().set_trace()
 
 def main():
     global zope_debug
@@ -185,6 +187,11 @@ def main():
     print "SOFTWARE_HOME=%s\n" % SOFTWARE_HOME
 
     zope_debug = ZopeDebug()
+
+    # <HACK ALERT>
+    import pdb;
+    pdb.set_trace = ipy_set_trace
+    # </HACK ALERT>
 
     # I like my banner minimal.
     o.banner = "ZOPE Py %s IPy %s\n" % (sys.version.split('\n')[0],Release.version)
