@@ -61,10 +61,10 @@ class ZopeDebug(object):
         try:
             from zope.component import getSiteManager
             from zope.component import getGlobalSiteManager
-            from zope.app.component.hooks import setSite, clearSite
+            from zope.app.component.hooks import setSite
 
             if self.portal is not None:
-                setSite( portal )
+                setSite( self.portal )
 
                 gsm = getGlobalSiteManager()
                 sm = getSiteManager()
