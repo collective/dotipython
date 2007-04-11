@@ -55,7 +55,12 @@ class ZopeDebug(object):
         from Testing.makerequest import makerequest
         self.app = makerequest( app )
 
-        self._make_permissive()
+        try:
+            self._make_permissive()
+            print "Permissive security installed"
+        except:
+            print "Permissive security NOT installed"
+
         self._pwd = self.portal or self.app
 
         try:
