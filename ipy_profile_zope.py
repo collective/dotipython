@@ -46,11 +46,19 @@ class ZopeDebug(object):
 
         self.configfile = configfile
 
-        from Zope2 import configure
+        try:
+            from Zope2 import configure
+        except ImportError:
+            from Zope import configure
+
         configure( configfile )
 
-        import Zope2
-        app = Zope2.app()
+        try:
+            import Zope2
+            app = Zope2.app()
+        except ImportError:
+            import Zope
+            app = Zope.app()
 
         from Testing.makerequest import makerequest
         self.app = makerequest( app )
@@ -120,11 +128,6 @@ class ZopeDebug(object):
         _policy = PermissiveSecurityPolicy()
         self.oldpolicy = setSecurityPolicy(_policy)
         newSecurityManager(None, AccessControl.User.system)
-
-    def _newApp(self):
-        import Zope2
-        #return makerequest( Zope2.app() )
-        return Zope2.app()
 
     def commit(self):
         """
