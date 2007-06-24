@@ -28,9 +28,7 @@ import textwrap
 # import ipy_defaults
 
 class ZopeDebug(object):
-    def __init__(self, PORTAL_PATH="plone" ):
-
-        self.portal_path = PORTAL_PATH
+    def __init__(self):
 
         self.instancehome = os.environ.get( "INSTANCE_HOME" )
 
@@ -110,7 +108,11 @@ class ZopeDebug(object):
 
     @property
     def portal(self):
-        return getattr( self.app, self.portal_path, None )
+        portals = self.app.objectValues( "Plone Site" )
+        if len(portals):
+            return portals[0]
+        else:
+            raise KeyError( "No Plone Site found.")
 
     def pwd(self):
         return self._pwd
@@ -133,8 +135,11 @@ class ZopeDebug(object):
         """
         Commit the transaction.
         """
-        import transaction
-        transaction.get().commit()
+        try:
+            import transaction
+            transaction.get().commit()
+        except ImportError:
+            get_transaction().commit()
 
     def sync(self):
         """
