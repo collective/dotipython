@@ -19,6 +19,7 @@ __revision__ = "$Revision$"
 
 from IPython import ipapi
 from IPython import Release
+from types import StringType
 import sys
 import os
 import textwrap
@@ -95,6 +96,7 @@ class ZopeDebug(object):
             ls = self.ls
             pwd = self.pwd
             cd = self.cd
+            su = self.su
 
             @property
             def cwd(self):
@@ -131,6 +133,25 @@ class ZopeDebug(object):
         self.oldpolicy = setSecurityPolicy(_policy)
         newSecurityManager(None, AccessControl.User.system)
 
+    def su(self, username):
+        """ Change to named user.
+        """
+        # TODO Make it easy to change back to permissive security.
+        user = self.portal.acl_users.getUser(username)
+        if not user:
+            print "Can't find %s in %s" % (username, self.portal.acl_users)
+            return
+
+        from AccessControl import ZopeSecurityPolicy
+        import AccessControl
+        from AccessControl.SecurityManagement import newSecurityManager
+        from AccessControl.SecurityManager import setSecurityPolicy
+
+        _policy = ZopeSecurityPolicy
+        self.oldpolicy = setSecurityPolicy(_policy)
+        wrapped_user = user.__of__(self.portal.acl_users)
+        newSecurityManager(None, user)
+
     def commit(self):
         """
         Commit the transaction.
@@ -149,13 +170,17 @@ class ZopeDebug(object):
 
     def objectInfo( self, o ):
         """
-        Retrun a descriptive string of an object
+        Return a descriptive string of an object
         """
         Title = ""
         t = getattr( o, 'Title', None )
         if t:
             Title = t()
-        return "id '%-20s', Title '%-30s' (%s) Folderish: %s" % ( o.getId(), Title, getattr( o, 'portal_type', o.meta_type), o.isPrincipiaFolderish )
+        return {'id': o.getId(),
+                'Title': Title,
+                'portal_type': getattr( o, 'portal_type', o.meta_type),
+                'folderish': o.isPrincipiaFolderish
+                }
 
     def cd( self, path ):
         """
@@ -163,8 +188,11 @@ class ZopeDebug(object):
 
          cd( ".." )
          cd( "/plone/Members/admin" )
+         cd( portal.Members.admin )
          etc.
         """
+        if type(path) is not StringType:
+            path = '/'.join(path.getPhysicalPath())
         cwd = self.pwd()
         x = cwd.unrestrictedTraverse( path )
         if x is None:
@@ -177,12 +205,15 @@ class ZopeDebug(object):
         """
         List object(s)
         """
+        if type(x) is StringType:
+            cwd = self.pwd()
+            x = cwd.unrestrictedTraverse( x )
         if x is None:
             x = self.pwd()
-        print self.objectInfo( x )
         if x.isPrincipiaFolderish:
-            for id, o in x.objectItems():
-                print "    ", self.objectInfo( o )
+            return [self.objectInfo(o) for id, o in x.objectItems()]
+        else:
+            return self.objectInfo( x )
 
 zope_debug = None
 
@@ -208,7 +239,7 @@ def main():
 
     # I like my banner minimal.
     o.banner = "ZOPE Py %s IPy %s\n" % (sys.version.split('\n')[0],Release.version)
-    
+
     print textwrap.dedent("""\
         ZOPE mode iPython shell.
 
