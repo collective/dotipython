@@ -144,13 +144,15 @@ class ZopeDebug(object):
 
         from AccessControl import ZopeSecurityPolicy
         import AccessControl
-        from AccessControl.SecurityManagement import newSecurityManager
+        from AccessControl.SecurityManagement import newSecurityManager, getSecurityManager
         from AccessControl.SecurityManager import setSecurityPolicy
 
         _policy = ZopeSecurityPolicy
         self.oldpolicy = setSecurityPolicy(_policy)
         wrapped_user = user.__of__(self.portal.acl_users)
         newSecurityManager(None, user)
+        print 'User changed.'
+        return getSecurityManager().getUser()
 
     def commit(self):
         """
