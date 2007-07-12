@@ -28,6 +28,14 @@ import textwrap
 # so consider yourself warned!
 # import ipy_defaults
 
+_marker = []
+def shasattr(obj, attr, acquire=False):
+    """ See Archetypes/utils.py
+    """
+    if not acquire:
+        obj = obj.aq_base
+    return getattr(obj, attr, _marker) is not _marker
+
 class ZopeDebug(object):
     def __init__(self):
 
@@ -97,6 +105,7 @@ class ZopeDebug(object):
             pwd = self.pwd
             cd = self.cd
             su = self.su
+            getCatalogInfo = self.getCatalogInfo
 
             @property
             def cwd(self):
@@ -153,6 +162,55 @@ class ZopeDebug(object):
         newSecurityManager(None, user)
         print 'User changed.'
         return getSecurityManager().getUser()
+
+    def getCatalogInfo(self, obj=None, catalog='portal_catalog', query=None, sort_on='created', sort_order='reverse' ):
+        """ Inspect portal_catalog. Pass an object or object id for a
+        default query on that object, or pass an explicit query.
+        """
+        if obj and query:
+            print "Ignoring %s, using query." % obj
+
+        catalog = self.portal.get(catalog)
+        if not catalog:
+            return 'No catalog'
+
+        indexes = catalog._catalog.indexes
+        if not query:
+            if type(obj) is StringType:
+                cwd = self.pwd()
+                obj = cwd.unrestrictedTraverse( obj )
+            # If the default in the signature is mutable, its value will
+            # persist across invocations.
+            query = {}
+            if indexes.get('path'):
+                from string import join
+                path = join(obj.getPhysicalPath(), '/') 
+                query.update({'path': path})
+            if indexes.get('getID'):
+                query.update({'getID': obj.id, })
+            if indexes.get('UID') and shasattr(obj, 'UID'):
+                query.update({'UID': obj.UID(), })
+        if indexes.get(sort_on):
+            query.update({'sort_on': sort_on, 'sort_order': sort_order})
+        if not query:
+            return 'Empty query'
+        results = catalog(**query)
+
+        result_info = []
+        for r in results:
+            rid = r.getRID()
+            if rid:
+                result_info.append(
+                        {'path': catalog.getpath(rid),
+                        'metadata': catalog.getMetadataForRID(rid),
+                        'indexes': catalog.getIndexDataForRID(rid), }
+                        )
+            else:
+                result_info.append({'missing': rid})
+
+        if len(result_info) == 1:
+            return result_info[0]
+        return result_info
 
     def commit(self):
         """
