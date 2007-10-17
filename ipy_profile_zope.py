@@ -123,7 +123,7 @@ class ZopeDebug(object):
         if len(portals):
             return portals[0]
         else:
-            raise KeyError( "No Plone Site found.")
+            return None
 
     def pwd(self):
         return self._pwd
