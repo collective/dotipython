@@ -152,10 +152,15 @@ class ZopeDebug(object):
         self.oldpolicy = setSecurityPolicy(_policy)
         newSecurityManager(None, AccessControl.User.system)
 
-    def su(self, username):
-        """ Change to named user.
+    def su(self, username=None):
+        """Change to named user. Return to permissive security
+        policy if no username is given.
         """
-        # TODO Make it easy to change back to permissive security.
+        if username is None:
+            self._make_permissive()
+            print "PermissiveSecurityPolicy put back in place"
+            return
+
         user = (
             self.portal.acl_users.getUser(username) or
             self.app.acl_users.getUser(username)
@@ -316,18 +321,21 @@ def main():
     pdb.set_trace = ipy_set_trace
     # </HACK ALERT>
 
-    available_utils = ",".join([
+    available_utils = ", ".join([
         x for x in
         dir(zope_debug.utils)
         if not x.startswith("_")]
     )
-    print textwrap.dedent("""\
+    print textwrap.dedent("""
         ZOPE mode iPython shell.
 
           Bound names:
            app
            portal
-           utils.{ %s }
+           utils.{%s}
+
+        If you call utils.su() with no arguments, the PermissiveSecurityPolicy
+        will be put back in place.
 
         """ % available_utils)
     if SOFTWARE_HOME:
