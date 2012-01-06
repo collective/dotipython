@@ -156,20 +156,23 @@ class ZopeDebug(object):
         """ Change to named user.
         """
         # TODO Make it easy to change back to permissive security.
-        user = self.portal.acl_users.getUser(username)
+        user = (
+            self.portal.acl_users.getUser(username) or
+            self.app.acl_users.getUser(username)
+        )
         if not user:
             print "Can't find %s in %s" % (username, self.portal.acl_users)
             return
 
-        from AccessControl import ZopeSecurityPolicy
+        from AccessControl.ZopeSecurityPolicy import ZopeSecurityPolicy
         from AccessControl.SecurityManagement import newSecurityManager
         from AccessControl.SecurityManagement import getSecurityManager
         from AccessControl.SecurityManager import setSecurityPolicy
 
-        _policy = ZopeSecurityPolicy
+        _policy = ZopeSecurityPolicy()
         self.oldpolicy = setSecurityPolicy(_policy)
         wrapped_user = user.__of__(self.portal.acl_users)
-        newSecurityManager(None, user)
+        newSecurityManager(None, wrapped_user)
         print 'User changed.'
         return getSecurityManager().getUser()
 
