@@ -17,8 +17,15 @@ __author__ = """Stefan Eletzhofer <stefan.eletzhofer@inquant.de>"""
 __docformat__ = 'plaintext'
 __revision__ = "$Revision$"
 
-from IPython import ipapi
-from IPython import Release
+# IPython.ipapi was moved and then deprecated
+try:
+    # IPython <= 0.10
+    from IPython.ipapi import get as get_inst
+except ImportError:
+    # IPython >= 0.11
+    from IPython.core.interactiveshell import InteractiveShell
+    get_inst = InteractiveShell.instance
+
 from types import StringType
 import sys
 import os
@@ -289,8 +296,7 @@ def ipy_set_trace():
 
 def main():
     global zope_debug
-    ip = ipapi.get()
-    o = ip.options
+    ip = get_inst()
     # autocall to "full" mode (smart mode is default, I like full mode)
 
     SOFTWARE_HOME = os.environ.get("SOFTWARE_HOME")
@@ -306,11 +312,6 @@ def main():
     import pdb
     pdb.set_trace = ipy_set_trace
     # </HACK ALERT>
-
-    # I like my banner minimal.
-    o.banner = "ZOPE Py %s IPy %s\n" % (
-        sys.version.split('\n')[0],
-        Release.version)
 
     available_utils = ",".join([
         x for x in
