@@ -287,8 +287,11 @@ def main():
     # autocall to "full" mode (smart mode is default, I like full mode)
     
     SOFTWARE_HOME = os.environ.get( "SOFTWARE_HOME" )
-    sys.path.append( SOFTWARE_HOME )
-    print "SOFTWARE_HOME=%s\n" % SOFTWARE_HOME
+    if SOFTWARE_HOME:
+        sys.path.append( SOFTWARE_HOME )
+        print "SOFTWARE_HOME=%s\n" % SOFTWARE_HOME
+    else:
+        print "No $SOFTWARE_HOME set, assume Zope >= 2.12 (Plone 4 has this)."
 
     zope_debug = ZopeDebug()
 
@@ -308,10 +311,12 @@ def main():
            portal
            utils.{ %s }
   
-        Uses the $SOFTWARE_HOME and $CONFIG_FILE environment
-        variables.
         """ % ( ",".join([ x for x in dir(zope_debug.utils) if not x.startswith("_") ] ) ) )
-
+    if SOFTWARE_HOME:
+        print "Uses the $SOFTWARE_HOME and $CONFIG_FILE environment variables."
+    else:
+        print "Uses the $CONFIG_FILE environment variable."
+        
 
     ip.user_ns.update( zope_debug.namespace )
 
