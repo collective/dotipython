@@ -3,7 +3,9 @@ dotipython
 
 IPython profile for use with Zope/Plone.
 
-This profile can be used from buildout as follows:
+This profile can be used from buildout as follows (the `client-debug` name
+below should refer to a buildout part defining a Zope instance used for
+development):
 
 ```
 [ipzope]
