@@ -1,5 +1,5 @@
-collective.dotipython
-=====================
+dotipython
+==========
 
 IPython profile for use with Zope/Plone.
 
