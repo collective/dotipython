@@ -3,16 +3,20 @@ dotipython
 
 IPython profile for use with Zope/Plone.
 
-This profile can be used from buildout as follows (the `client-debug` name
+This profile man be used from buildout as follows (the `client-debug` name
 below should refer to a buildout part defining a Zope instance used for
 development):
 
 ```
 [ipzope]
-# a IPython Shell for interactive use with zope running.
-# you also need to put git@github.com:collective/dotipython.git
-# in the $HOME/.ipython/profile_zope/startup directory for the following to
-# work.
+# An IPython Shell for interactive use with Zope running.
+#
+# It requires the `ipy_profile_zope.py` configuration script.
+# Get this from git@github.com:collective/dotipython.git
+# and put it in `$HOME/.ipython/profile_zope/startup`, or see
+# http://ipython.org/ipython-doc/dev/config/overview.html#configuration-file-location
+# for more details.
+#
 recipe = zc.recipe.egg
 eggs =
     ipython
